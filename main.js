@@ -1,213 +1,288 @@
 "use strict";
 
-// PreloadScene: Loads all assets and then switches to the menu.
+// Game physics and timing constants
+const GRAVITY = 800;
+const FLAP_VELOCITY = -300;
+const PIPE_SPEED = -200;
+const PIPE_INTERVAL = 1500;
+const GAP_SIZE = 120;
+
+// PreloadScene: Loads all assets before starting the game.
 class PreloadScene extends Phaser.Scene {
-    constructor() {
-        super("PreloadScene");
-    }
-    preload() {
-        // Ensure crossOrigin is set.
-        this.load.crossOrigin = "anonymous";
-
-        this.load.image("background", "assets/background.svg");
-        this.load.image("ground", "assets/ground.svg");
-        // The tank spritesheet is 144x32 (3 frames of 48x32 each).
-        this.load.spritesheet("tank", "assets/tank.svg", {
-            frameWidth: 48,
-            frameHeight: 32
-        });
-        this.load.image("pipe", "assets/pipe.svg");
-    }
-    create() {
-        this.scene.start("MenuScene");
-    }
+  constructor() {
+    super("PreloadScene");
+  }
+  preload() {
+    // Enable cross-origin loading (assets must be served via HTTP)
+    this.load.crossOrigin = "anonymous";
+    this.load.image("background", "assets/background.svg");
+    this.load.image("ground", "assets/ground.svg");
+    // The tank spritesheet is 144x32 (3 frames of 48x32 each)
+    this.load.spritesheet("tank", "assets/tank.svg", { frameWidth: 48, frameHeight: 32 });
+    this.load.image("pipe", "assets/pipe.svg");
+  }
+  create() {
+    this.scene.start("MenuScene");
+  }
 }
 
-// MenuScene: Displays title and instructions.
+// MenuScene: A fully accessible, multi-device welcome screen.
 class MenuScene extends Phaser.Scene {
-    constructor() {
-        super("MenuScene");
-    }
-    create() {
-        this.add.image(200, 300, "background");
+  constructor() {
+    super("MenuScene");
+  }
+  create() {
+    // Display the background image covering the canvas.
+    this.add.image(200, 300, "background");
 
-        this.add.text(200, 150, "Kopi - Soviet Flappy Tank", {
-            font: "28px Arial",
-            fill: "#ffffff"
-        }).setOrigin(0.5);
+    // Semi-transparent overlay for text clarity.
+    this.add.rectangle(200, 300, 400, 600, 0x000000, 0.4);
 
-        this.add.text(200, 300, "Click or Press SPACE to Start", {
-            font: "20px Arial",
-            fill: "#ffffff"
-        }).setOrigin(0.5);
+    // Title text
+    this.add.text(200, 150, "Flappy Tank", {
+      font: "32px Arial",
+      fill: "#ffffff",
+      stroke: "#000",
+      strokeThickness: 4
+    }).setOrigin(0.5);
 
-        // Resume AudioContext on first interaction.
-        const resumeAudio = () => {
-            if (this.sound && this.sound.context && this.sound.context.state === "suspended") {
-                this.sound.context.resume();
-            }
-            this.startGame();
-        };
+    // Instructions text – supports multiple devices (tap or key press)
+    this.add.text(200, 250, "Tap or press SPACE to start\nUse SPACE/tap to flap\nPress ESC to pause", {
+      font: "20px Arial",
+      fill: "#ffffff",
+      align: "center"
+    }).setOrigin(0.5);
 
-        this.input.once("pointerdown", resumeAudio, this);
-        this.input.keyboard.once("keydown-SPACE", resumeAudio, this);
-    }
-    startGame() {
-        this.scene.start("GameScene");
-    }
+    // Resume AudioContext (if needed) and start the game on first user interaction.
+    const startGame = () => {
+      if (this.sound && this.sound.context && this.sound.context.state === "suspended") {
+        this.sound.context.resume();
+      }
+      this.scene.start("GameScene");
+    };
+
+    this.input.once("pointerdown", startGame, this);
+    this.input.keyboard.once("keydown-SPACE", startGame, this);
+  }
 }
 
-// GameScene: Main gameplay.
+// GameScene: Main gameplay with refined physics and improved mechanics.
 class GameScene extends Phaser.Scene {
-    constructor() {
-        super("GameScene");
-        this.pipeTimer = null;
-        this.score = 0;
-        this.scoreText = null;
-    }
-    create() {
-        this.score = 0;
+  constructor() {
+    super("GameScene");
+    this.pipeTimer = null;
+    this.score = 0;
+    this.scoreText = null;
+  }
+  create() {
+    this.score = 0;
+    // Add background
+    this.add.image(200, 300, "background");
 
-        this.add.image(200, 300, "background");
+    // Create a group for pipes.
+    this.pipes = this.physics.add.group();
 
-        this.pipes = this.physics.add.group();
+    // Create scrolling ground.
+    this.ground = this.add.tileSprite(200, 584, 400, 32, "ground");
+    this.physics.add.existing(this.ground, true);
 
-        this.ground = this.add.tileSprite(200, 584, 400, 32, "ground");
-        this.physics.add.existing(this.ground, true);
+    // Create the tank (player sprite)
+    this.tank = this.physics.add.sprite(100, 300, "tank");
+    this.tank.setOrigin(0.5);
+    this.tank.body.gravity.y = GRAVITY;
+    this.tank.setCollideWorldBounds(true);
 
-        this.tank = this.physics.add.sprite(100, 300, "tank");
-        this.tank.setOrigin(0.5);
-        this.tank.body.gravity.y = 800;
-        this.tank.setCollideWorldBounds(true);
+    // Tank animation from the 3-frame spritesheet.
+    this.anims.create({
+      key: "fly",
+      frames: this.anims.generateFrameNumbers("tank", { start: 0, end: 2 }),
+      frameRate: 10,
+      repeat: -1
+    });
+    this.tank.play("fly");
 
-        // Create the flying animation using the 3-frame spritesheet.
-        this.anims.create({
-            key: "fly",
-            frames: this.anims.generateFrameNumbers("tank", { start: 0, end: 2 }),
-            frameRate: 10,
-            repeat: -1
-        });
-        this.tank.play("fly");
+    // Input: pointer for touch/mouse and SPACE for keyboard.
+    this.input.on("pointerdown", this.flap, this);
+    this.input.keyboard.on("keydown-SPACE", this.flap, this);
 
-        this.input.on("pointerdown", this.flap, this);
-        this.input.keyboard.on("keydown-SPACE", this.flap, this);
+    // Pause control: press ESC to pause.
+    this.input.keyboard.on("keydown-ESC", this.togglePause, this);
 
-        this.physics.add.collider(this.tank, this.ground, this.hitObstacle, null, this);
-        this.physics.add.overlap(this.tank, this.pipes, this.hitObstacle, null, this);
+    // Collision detection: tank vs. ground and pipes.
+    this.physics.add.collider(this.tank, this.ground, this.hitObstacle, null, this);
+    this.physics.add.overlap(this.tank, this.pipes, this.hitObstacle, null, this);
 
-        this.scoreText = this.add.text(20, 20, "Score: 0", {
-            font: "24px Arial",
-            fill: "#ffffff"
-        });
+    // Score display.
+    this.scoreText = this.add.text(20, 20, "Score: 0", {
+      font: "24px Arial",
+      fill: "#ffffff",
+      stroke: "#000",
+      strokeThickness: 3
+    });
 
-        this.pipeTimer = this.time.addEvent({
-            delay: 1500,
-            callback: this.addPipeRow,
-            callbackScope: this,
-            loop: true
-        });
-    }
+    // Generate pipes at set intervals.
+    this.pipeTimer = this.time.addEvent({
+      delay: PIPE_INTERVAL,
+      callback: this.addPipeRow,
+      callbackScope: this,
+      loop: true
+    });
+  }
+  
+  flap() {
+    this.tank.setVelocityY(FLAP_VELOCITY);
+  }
+  
+  addPipeRow() {
+    const gapCenter = Phaser.Math.Between(100, 400);
+    const topPipeY = gapCenter - GAP_SIZE / 2;
+    const bottomPipeY = gapCenter + GAP_SIZE / 2;
 
-    flap() {
-        this.tank.setVelocityY(-300);
-    }
+    // Top pipe (flipped vertically)
+    let topPipe = this.pipes.create(420, topPipeY, "pipe");
+    topPipe.setOrigin(0, 1);
+    topPipe.body.velocity.x = PIPE_SPEED;
+    topPipe.flipY = true;
 
-    addPipeRow() {
-        const gapCenter = Phaser.Math.Between(100, 400);
-        const gapSize = 120;
-        const topPipeY = gapCenter - gapSize / 2;
-        const bottomPipeY = gapCenter + gapSize / 2;
+    // Bottom pipe
+    let bottomPipe = this.pipes.create(420, bottomPipeY, "pipe");
+    bottomPipe.setOrigin(0, 0);
+    bottomPipe.body.velocity.x = PIPE_SPEED;
 
-        let topPipe = this.pipes.create(420, topPipeY, "pipe");
-        topPipe.setOrigin(0, 1);
-        topPipe.body.velocity.x = -200;
-        topPipe.flipY = true;
+    topPipe.scored = false;
+    bottomPipe.scored = false;
+  }
+  
+  update() {
+    // Scroll the ground.
+    this.ground.tilePositionX += 2;
 
-        let bottomPipe = this.pipes.create(420, bottomPipeY, "pipe");
-        bottomPipe.setOrigin(0, 0);
-        bottomPipe.body.velocity.x = -200;
-
-        topPipe.scored = false;
-        bottomPipe.scored = false;
-    }
-
-    update() {
-        this.ground.tilePositionX += 2;
-
-        this.pipes.getChildren().forEach((pipe) => {
-            if (pipe.x < -pipe.width) {
-                pipe.destroy();
-            } else if (!pipe.scored && pipe.x + pipe.width < this.tank.x) {
-                if (pipe.flipY) {
-                    pipe.scored = true;
-                    this.score++;
-                    this.scoreText.setText("Score: " + this.score);
-                }
-            }
-        }, this);
-
-        if (this.tank.y < 0) {
-            this.hitObstacle();
+    // Remove off-screen pipes and update the score.
+    this.pipes.getChildren().forEach((pipe) => {
+      if (pipe.x < -pipe.width) {
+        pipe.destroy();
+      } else if (!pipe.scored && pipe.x + pipe.width < this.tank.x) {
+        if (pipe.flipY) {
+          pipe.scored = true;
+          this.score++;
+          this.scoreText.setText("Score: " + this.score);
         }
-    }
+      }
+    });
 
-    hitObstacle() {
-        this.pipeTimer.remove();
-        this.pipes.setVelocityX(0);
-        this.tank.body.gravity.y = 0;
-        this.tank.setVelocity(0, 0);
-        this.time.delayedCall(1000, () => {
-            this.scene.start("GameOverScene", { score: this.score });
-        });
+    // If the tank flies off the top, treat it as a collision.
+    if (this.tank.y < 0) {
+      this.hitObstacle();
     }
+  }
+  
+  hitObstacle() {
+    // Stop pipe generation and freeze movement.
+    this.pipeTimer.remove();
+    this.pipes.setVelocityX(0);
+    this.tank.body.gravity.y = 0;
+    this.tank.setVelocity(0, 0);
+    // Fade out before moving to Game Over.
+    this.cameras.main.fade(500, 0, 0, 0);
+    this.time.delayedCall(600, () => {
+      this.scene.start("GameOverScene", { score: this.score });
+    });
+  }
+  
+  togglePause() {
+    // Toggle pause: launch the PauseScene and pause GameScene.
+    if (!this.scene.isPaused("GameScene")) {
+      this.scene.launch("PauseScene");
+      this.scene.pause();
+    }
+  }
 }
 
-// GameOverScene: Displays final score and restart instructions.
+// PauseScene: An overlay that allows users to resume the game.
+class PauseScene extends Phaser.Scene {
+  constructor() {
+    super("PauseScene");
+  }
+  create() {
+    // Semi-transparent overlay.
+    this.add.rectangle(200, 300, 400, 600, 0x000000, 0.5);
+    this.add.text(200, 300, "Paused\nPress ESC or tap to resume", {
+      font: "28px Arial",
+      fill: "#ffffff",
+      align: "center",
+      stroke: "#000",
+      strokeThickness: 4
+    }).setOrigin(0.5);
+
+    // Resume the game on tap or ESC.
+    const resume = () => {
+      this.scene.resume("GameScene");
+      this.scene.stop();
+    };
+
+    this.input.once("pointerdown", resume, this);
+    this.input.keyboard.once("keydown-ESC", resume, this);
+  }
+}
+
+// GameOverScene: Displays the final score and accessible instructions to restart.
 class GameOverScene extends Phaser.Scene {
-    constructor() {
-        super("GameOverScene");
-    }
-    init(data) {
-        this.finalScore = data.score;
-    }
-    create() {
-        this.add.image(200, 300, "background");
+  constructor() {
+    super("GameOverScene");
+  }
+  init(data) {
+    this.finalScore = data.score;
+  }
+  create() {
+    this.add.image(200, 300, "background");
+    // Semi-transparent overlay for clarity.
+    this.add.rectangle(200, 300, 400, 600, 0x000000, 0.4);
 
-        this.add.text(200, 200, "Game Over", {
-            font: "48px Arial",
-            fill: "#ffffff"
-        }).setOrigin(0.5);
+    // "Game Over" text.
+    this.add.text(200, 180, "Game Over", {
+      font: "48px Arial",
+      fill: "#ffffff",
+      stroke: "#000",
+      strokeThickness: 4
+    }).setOrigin(0.5);
 
-        this.add.text(200, 260, "Score: " + this.finalScore, {
-            font: "32px Arial",
-            fill: "#ffffff"
-        }).setOrigin(0.5);
+    // Final score display.
+    this.add.text(200, 250, "Score: " + this.finalScore, {
+      font: "32px Arial",
+      fill: "#ffffff",
+      stroke: "#000",
+      strokeThickness: 3
+    }).setOrigin(0.5);
 
-        this.add.text(200, 320, "Click or Press SPACE to Restart", {
-            font: "20px Arial",
-            fill: "#ffffff"
-        }).setOrigin(0.5);
+    // Restart instructions.
+    this.add.text(200, 350, "Tap or press SPACE to Restart", {
+      font: "24px Arial",
+      fill: "#ffffff",
+      stroke: "#000",
+      strokeThickness: 2,
+      align: "center"
+    }).setOrigin(0.5);
 
-        this.input.once("pointerdown", () => {
-            this.scene.start("GameScene");
-        });
-        this.input.keyboard.once("keydown-SPACE", () => {
-            this.scene.start("GameScene");
-        });
-    }
+    const restartGame = () => {
+      this.scene.start("GameScene");
+    };
+
+    this.input.once("pointerdown", restartGame, this);
+    this.input.keyboard.once("keydown-SPACE", restartGame, this);
+  }
 }
 
 // Phaser game configuration.
 const config = {
-    type: Phaser.AUTO,
-    width: 400,
-    height: 600,
-    parent: "game-container",
-    physics: {
-        default: "arcade",
-        arcade: { debug: false }
-    },
-    scene: [PreloadScene, MenuScene, GameScene, GameOverScene]
+  type: Phaser.AUTO,
+  width: 400,
+  height: 600,
+  parent: "game-container",
+  physics: {
+    default: "arcade",
+    arcade: { debug: false }
+  },
+  scene: [PreloadScene, MenuScene, GameScene, PauseScene, GameOverScene]
 };
 
 const game = new Phaser.Game(config);

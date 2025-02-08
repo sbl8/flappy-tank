@@ -1,11 +1,38 @@
 body {
     margin: 0;
     background: #70c5ce;
-}
-
-#game-container {
-    width: 400px;
+    font-family: Arial, sans-serif;
+    color: #fff;
+  }
+  
+  /* Responsive game container */
+  #game-container {
+    width: 100%;
+    max-width: 400px;
     height: 600px;
     margin: 0 auto;
     display: block;
-}
+    outline: none;
+  }
+  
+  /* Skip link for accessibility */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #000;
+    color: #fff;
+    padding: 8px;
+    z-index: 100;
+    transition: top 0.3s;
+  }
+  .skip-link:focus {
+    top: 0;
+  }
+  
+  /* UI text styling for overlays and instructions */
+  .ui-text {
+    font-size: 20px;
+    text-align: center;
+  }
+  

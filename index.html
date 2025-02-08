@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Kopi - Soviet Flappy Tank</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Flappy Tank</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Styles for responsiveness and accessibility -->
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div id="game-container"></div>
-    <!-- Phaser 3 from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
-    <script src="main.js"></script>
+  <!-- A skip link for keyboard users -->
+  <a href="#game-container" class="skip-link">Skip to game</a>
+  <!-- The main container for the game -->
+  <div id="game-container" role="main" tabindex="0"></div>
+  <noscript>
+    <p>Please enable JavaScript to play Flappy Tank.</p>
+  </noscript>
+  <!-- Phaser 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+  <script src="main.js"></script>
 </body>
-
 </html>
