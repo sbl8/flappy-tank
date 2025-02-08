@@ -1,7 +1,6 @@
 "use strict";
 
 // --- CRT Pipeline Shader and Class ---
-
 // This fragment shader simulates a CRT screen by adding scanlines and slight curvature.
 const CRTFragmentShader = `
 #ifdef GL_ES
@@ -95,8 +94,9 @@ class MenuScene extends Phaser.Scene {
       align: "center"
     }).setOrigin(0.5);
 
-    // Apply the CRT effect to the main camera.
-    this.cameras.main.setRenderToTexture(new CRTPipeline(this.game));
+    // Apply the CRT effect by setting our custom pipeline on the main camera.
+    // Note: 'CRTPipeline' is the key we registered in the game config.
+    this.cameras.main.setPostPipeline("CRTPipeline");
 
     // Resume AudioContext (if needed) and start the game on first user interaction.
     const startGame = () => {
@@ -131,7 +131,7 @@ class GameScene extends Phaser.Scene {
     this.ground = this.add.tileSprite(200, 584, 400, 32, "ground");
     this.physics.add.existing(this.ground, true);
 
-    // Create the tank (player sprite).
+    // Create the tank (player sprite)
     this.tank = this.physics.add.sprite(100, 300, "tank");
     this.tank.setOrigin(0.5);
     this.tank.body.gravity.y = GRAVITY;
@@ -324,6 +324,7 @@ class GameOverScene extends Phaser.Scene {
 }
 
 // --- Phaser Game Configuration ---
+// Register our custom CRT pipeline using the pipeline property.
 const config = {
   type: Phaser.AUTO,
   width: 400,
@@ -333,7 +334,8 @@ const config = {
     default: "arcade",
     arcade: { debug: false }
   },
-  scene: [PreloadScene, MenuScene, GameScene, PauseScene, GameOverScene]
+  scene: [PreloadScene, MenuScene, GameScene, PauseScene, GameOverScene],
+  pipeline: { CRTPipeline: CRTPipeline }
 };
 
 const game = new Phaser.Game(config);
