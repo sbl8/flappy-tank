@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="272" height="80" viewBox="0 0 272 80" xmlns="http://www.w3.org/2000/svg">
+<!-- A revised dark tank spritesheet with three uniform frames (each 90×80) arranged horizontally.
+     This version fixes alignment issues so the animation will work properly. -->
+<svg width="270" height="80" viewBox="0 0 270 80" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Track pattern -->
+    <!-- Track pattern for the tank's tracks -->
     <pattern id="trackPattern" width="6" height="6" patternUnits="userSpaceOnUse">
       <circle cx="3" cy="3" r="2" fill="black"/>
     </pattern>
   </defs>
 
   <!-- Frame 1: Turret angled up -->
-  <g id="frame1">
+  <g id="frame1" transform="translate(0,0)">
     <!-- Tank Body -->
     <rect x="10" y="50" width="80" height="24" fill="#222222" stroke="black" stroke-width="2"/>
     <rect x="14" y="52" width="72" height="18" fill="#333333"/>
@@ -16,29 +18,39 @@
     <rect x="10" y="72" width="80" height="8" fill="url(#trackPattern)"/>
     <!-- Turret -->
     <rect x="38" y="30" width="30" height="18" fill="#444444" stroke="black" stroke-width="2"/>
-    <!-- Turret Barrel (Angled Up) -->
-    <polygon points="68,30 100,10 104,14 72,34" fill="#444444" stroke="black" stroke-width="2"/>
+    <!-- Turret Barrel (angled upward, adjusted to fit within frame) -->
+    <polygon points="68,30 80,15 84,19 68,34" fill="#444444" stroke="black" stroke-width="2"/>
     <!-- Hatch -->
     <circle cx="52" cy="30" r="4" fill="black"/>
   </g>
 
   <!-- Frame 2: Turret straight -->
-  <g id="frame2" transform="translate(92,0)">
+  <g id="frame2" transform="translate(90,0)">
+    <!-- Tank Body -->
     <rect x="10" y="50" width="80" height="24" fill="#222222" stroke="black" stroke-width="2"/>
     <rect x="14" y="52" width="72" height="18" fill="#333333"/>
+    <!-- Tracks -->
     <rect x="10" y="72" width="80" height="8" fill="url(#trackPattern)"/>
+    <!-- Turret -->
     <rect x="36" y="34" width="30" height="18" fill="#444444" stroke="black" stroke-width="2"/>
-    <rect x="66" y="40" width="40" height="8" fill="#444444" stroke="black" stroke-width="2"/>
+    <!-- Cannon (horizontal, adjusted width to fit) -->
+    <rect x="66" y="40" width="24" height="8" fill="#444444" stroke="black" stroke-width="2"/>
+    <!-- Hatch -->
     <circle cx="50" cy="34" r="4" fill="black"/>
   </g>
 
-  <!-- Frame 3: Turret angled down (Extended Space for Barrel) -->
-  <g id="frame3" transform="translate(184,0)">
+  <!-- Frame 3: Turret angled down -->
+  <g id="frame3" transform="translate(180,0)">
+    <!-- Tank Body -->
     <rect x="10" y="50" width="80" height="24" fill="#222222" stroke="black" stroke-width="2"/>
     <rect x="14" y="52" width="72" height="18" fill="#333333"/>
+    <!-- Tracks -->
     <rect x="10" y="72" width="80" height="8" fill="url(#trackPattern)"/>
+    <!-- Turret -->
     <rect x="34" y="38" width="30" height="18" fill="#444444" stroke="black" stroke-width="2"/>
-    <polygon points="64,44 100,64 104,60 68,38" fill="#444444" stroke="black" stroke-width="2"/>
+    <!-- Cannon (angled down, adjusted to fit) -->
+    <polygon points="64,44 80,64 84,60 68,38" fill="#444444" stroke="black" stroke-width="2"/>
+    <!-- Hatch -->
     <circle cx="46" cy="38" r="4" fill="black"/>
   </g>
 </svg>
