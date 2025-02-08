@@ -4,19 +4,36 @@
   <meta charset="UTF-8">
   <title>Flappy Tank</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Styles for responsiveness and accessibility -->
+  <!-- Meta description and keywords for SEO -->
+  <meta name="description" content="Flappy Tank - A retro-inspired arcade game built with Phaser 3 featuring a challenging Soviet tank.">
+  <meta name="keywords" content="Flappy Tank, Arcade, Phaser 3, Retro Game, Soviet Tank, HTML5">
+  <meta name="author" content="sbl8">
+  <meta name="robots" content="index, follow">
+  <!-- Open Graph metadata for social sharing -->
+  <meta property="og:title" content="Flappy Tank">
+  <meta property="og:description" content="Play Flappy Tank, a retro-inspired arcade game built with Phaser 3 featuring a challenging Soviet tank.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://github.com/sbl8/flappy-tank">
+  <meta property="og:image" content="assets/star.png">
+  <!-- Favicon -->
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- A skip link for keyboard users -->
-  <a href="#game-container" class="skip-link">Skip to game</a>
-  <!-- The main container for the game -->
-  <div id="game-container" role="main" tabindex="0"></div>
+  <!-- Skip link for keyboard users -->
+  <a href="#game-container" class="skip-link">Skip to game content</a>
+  
+  <!-- Main container for the game with accessibility attributes -->
+  <div id="game-container" role="main" tabindex="0" aria-label="Flappy Tank Game"></div>
+  
   <noscript>
     <p>Please enable JavaScript to play Flappy Tank.</p>
   </noscript>
-  <!-- Phaser 3 -->
+  
+  <!-- Phaser 3 library -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
+  <!-- Main game script -->
   <script src="main.js"></script>
 </body>
 </html>

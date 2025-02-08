@@ -1,13 +1,55 @@
 "use strict";
 
-// Game physics and timing constants
+// --- CRT Pipeline Shader and Class ---
+
+// This fragment shader simulates a CRT screen by adding scanlines and slight curvature.
+const CRTFragmentShader = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform sampler2D uMainSampler;
+uniform vec2 uResolution;
+varying vec2 outTexCoord;
+
+void main(void) {
+    vec2 uv = outTexCoord;
+    
+    // Simulate screen curvature
+    vec2 centered = uv - 0.5;
+    float radius = length(centered);
+    uv += centered * 0.05 * radius * radius;
+    
+    // Simulate scanlines
+    float scanline = sin(uv.y * uResolution.y * 3.0) * 0.03;
+    
+    vec4 color = texture2D(uMainSampler, uv);
+    color.rgb -= scanline;
+    
+    gl_FragColor = color;
+}
+`;
+
+// Custom pipeline that applies the CRT effect.
+class CRTPipeline extends Phaser.Renderer.WebGL.Pipelines.SinglePipeline {
+    constructor(game) {
+        super({
+            game: game,
+            renderer: game.renderer,
+            fragShader: CRTFragmentShader
+        });
+    }
+}
+
+// --- Game Constants ---
 const GRAVITY = 800;
 const FLAP_VELOCITY = -300;
 const PIPE_SPEED = -200;
 const PIPE_INTERVAL = 1500;
-const GAP_SIZE = 120;
+// Increased gap size for easier navigation (was 120, now 160)
+const GAP_SIZE = 160;
 
-// PreloadScene: Loads all assets before starting the game.
+// --- PreloadScene ---
 class PreloadScene extends Phaser.Scene {
   constructor() {
     super("PreloadScene");
@@ -26,7 +68,7 @@ class PreloadScene extends Phaser.Scene {
   }
 }
 
-// MenuScene: A fully accessible, multi-device welcome screen.
+// --- MenuScene ---
 class MenuScene extends Phaser.Scene {
   constructor() {
     super("MenuScene");
@@ -38,7 +80,7 @@ class MenuScene extends Phaser.Scene {
     // Semi-transparent overlay for text clarity.
     this.add.rectangle(200, 300, 400, 600, 0x000000, 0.4);
 
-    // Title text
+    // Title text.
     this.add.text(200, 150, "Flappy Tank", {
       font: "32px Arial",
       fill: "#ffffff",
@@ -46,12 +88,15 @@ class MenuScene extends Phaser.Scene {
       strokeThickness: 4
     }).setOrigin(0.5);
 
-    // Instructions text – supports multiple devices (tap or key press)
+    // Instructions text – supports multiple devices (tap or key press).
     this.add.text(200, 250, "Tap or press SPACE to start\nUse SPACE/tap to flap\nPress ESC to pause", {
       font: "20px Arial",
       fill: "#ffffff",
       align: "center"
     }).setOrigin(0.5);
+
+    // Apply the CRT effect to the main camera.
+    this.cameras.main.setRenderToTexture(new CRTPipeline(this.game));
 
     // Resume AudioContext (if needed) and start the game on first user interaction.
     const startGame = () => {
@@ -66,7 +111,7 @@ class MenuScene extends Phaser.Scene {
   }
 }
 
-// GameScene: Main gameplay with refined physics and improved mechanics.
+// --- GameScene ---
 class GameScene extends Phaser.Scene {
   constructor() {
     super("GameScene");
@@ -86,7 +131,7 @@ class GameScene extends Phaser.Scene {
     this.ground = this.add.tileSprite(200, 584, 400, 32, "ground");
     this.physics.add.existing(this.ground, true);
 
-    // Create the tank (player sprite)
+    // Create the tank (player sprite).
     this.tank = this.physics.add.sprite(100, 300, "tank");
     this.tank.setOrigin(0.5);
     this.tank.body.gravity.y = GRAVITY;
@@ -149,7 +194,7 @@ class GameScene extends Phaser.Scene {
     topPipe.body.velocity.x = PIPE_SPEED;
     topPipe.flipY = true;
 
-    // Bottom pipe
+    // Bottom pipe.
     let bottomPipe = this.pipes.create(420, bottomPipeY, "pipe");
     bottomPipe.setOrigin(0, 0);
     bottomPipe.body.velocity.x = PIPE_SPEED;
@@ -204,7 +249,7 @@ class GameScene extends Phaser.Scene {
   }
 }
 
-// PauseScene: An overlay that allows users to resume the game.
+// --- PauseScene ---
 class PauseScene extends Phaser.Scene {
   constructor() {
     super("PauseScene");
@@ -231,7 +276,7 @@ class PauseScene extends Phaser.Scene {
   }
 }
 
-// GameOverScene: Displays the final score and accessible instructions to restart.
+// --- GameOverScene ---
 class GameOverScene extends Phaser.Scene {
   constructor() {
     super("GameOverScene");
@@ -278,7 +323,7 @@ class GameOverScene extends Phaser.Scene {
   }
 }
 
-// Phaser game configuration.
+// --- Phaser Game Configuration ---
 const config = {
   type: Phaser.AUTO,
   width: 400,
