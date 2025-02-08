@@ -17,7 +17,7 @@ class PreloadScene extends Phaser.Scene {
     this.load.crossOrigin = "anonymous";
     this.load.image("background", "assets/background.svg");
     this.load.image("ground", "assets/ground.svg");
-    // The tank spritesheet is 144x32 (3 frames of 48x32 each)
+    // Updated: Tank spritesheet is now 3 frames of 90×80 each.
     this.load.spritesheet("tank", "assets/tank.svg", { frameWidth: 90, frameHeight: 80 });
     this.load.image("pipe", "assets/pipe.svg");
   }
@@ -76,7 +76,7 @@ class GameScene extends Phaser.Scene {
   }
   create() {
     this.score = 0;
-    // Add background
+    // Add background.
     this.add.image(200, 300, "background");
 
     // Create a group for pipes.
@@ -91,6 +91,10 @@ class GameScene extends Phaser.Scene {
     this.tank.setOrigin(0.5);
     this.tank.body.gravity.y = GRAVITY;
     this.tank.setCollideWorldBounds(true);
+    // Adjust the physics body to better match the visible tank.
+    // For a 90×80 sprite, a collision box of 60×40 with an offset of (15,20) works well.
+    this.tank.body.setSize(60, 40);
+    this.tank.body.setOffset(15, 20);
 
     // Tank animation from the 3-frame spritesheet.
     this.anims.create({
@@ -110,7 +114,8 @@ class GameScene extends Phaser.Scene {
 
     // Collision detection: tank vs. ground and pipes.
     this.physics.add.collider(this.tank, this.ground, this.hitObstacle, null, this);
-    this.physics.add.overlap(this.tank, this.pipes, this.hitObstacle, null, this);
+    // Use collider (instead of overlap) for reliable collision detection with pipes.
+    this.physics.add.collider(this.tank, this.pipes, this.hitObstacle, null, this);
 
     // Score display.
     this.scoreText = this.add.text(20, 20, "Score: 0", {
@@ -162,6 +167,7 @@ class GameScene extends Phaser.Scene {
       if (pipe.x < -pipe.width) {
         pipe.destroy();
       } else if (!pipe.scored && pipe.x + pipe.width < this.tank.x) {
+        // Increase score only once per pipe pair (using the top pipe as the marker)
         if (pipe.flipY) {
           pipe.scored = true;
           this.score++;
