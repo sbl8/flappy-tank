@@ -1,5 +1,7 @@
 # Flappy Tank
 
+![Banner](https://github.com/sbl8/flappy-tank/blob/main/assets/tank.svg)
+
 Flappy Tank is an open-source, minimalist, Flappy Bird–inspired game featuring a Soviet-themed tank. Built with Phaser 3, this static project emphasizes accessibility, multi-device support, and refined gameplay mechanics.
 
 ## Features
