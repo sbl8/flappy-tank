@@ -18,7 +18,7 @@ class PreloadScene extends Phaser.Scene {
     this.load.image("background", "assets/background.svg");
     this.load.image("ground", "assets/ground.svg");
     // The tank spritesheet is 144x32 (3 frames of 48x32 each)
-    this.load.spritesheet("tank", "assets/tank.svg", { frameWidth: 48, frameHeight: 32 });
+    this.load.spritesheet("tank", "assets/tank.svg", { frameWidth: 90, frameHeight: 80 });
     this.load.image("pipe", "assets/pipe.svg");
   }
   create() {
