@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A concrete-like ground with subtle lines -->
+<svg width="400" height="32" viewBox="0 0 400 32" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="32" fill="#555" />
+  <line x1="0" y1="16" x2="400" y2="16" stroke="#333" stroke-width="2"/>
+  <line x1="0" y1="8" x2="400" y2="8" stroke="#333" stroke-width="1"/>
+  <line x1="0" y1="24" x2="400" y2="24" stroke="#333" stroke-width="1"/>
+</svg>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Soviet-inspired red background with a gold star -->
+<svg width="400" height="600" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cc0000"/>
+      <stop offset="100%" stop-color="#ff0000"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="600" fill="url(#bgGrad)"/>
+  <polygon points="350,50 360,70 380,70 365,85 370,105 350,95 330,105 335,85 320,70 340,70"
+           fill="#ffd700" stroke="#b8860b" stroke-width="2"/>
+</svg>

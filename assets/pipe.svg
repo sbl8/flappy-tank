@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A metallic industrial pipe with rounded corners and bolts -->
+<svg width="52" height="320" viewBox="0 0 52 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pipeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#777" />
+      <stop offset="100%" stop-color="#333" />
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="50" height="318" rx="8" ry="8" fill="url(#pipeGrad)" stroke="#222" stroke-width="2"/>
+  <!-- Bolts along the pipe -->
+  <circle cx="26" cy="40" r="3" fill="#aaa"/>
+  <circle cx="26" cy="80" r="3" fill="#aaa"/>
+  <circle cx="26" cy="120" r="3" fill="#aaa"/>
+  <circle cx="26" cy="160" r="3" fill="#aaa"/>
+  <circle cx="26" cy="200" r="3" fill="#aaa"/>
+  <circle cx="26" cy="240" r="3" fill="#aaa"/>
+  <circle cx="26" cy="280" r="3" fill="#aaa"/>
+</svg>
